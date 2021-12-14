@@ -7,6 +7,7 @@
 #include <oneapi/tbb/tick_count.h>
 
 void simple_copy(float ** const src, float * const dst, const size_t n_rows, const size_t n_cols);
+void optimized_copy(float ** const src, float * const dst, const size_t n_rows, const size_t n_cols);
 
 int main() {
     constexpr size_t n_rows = 4 * 1024 * 1024;
@@ -23,6 +24,11 @@ int main() {
     oneapi::tbb::tick_count t1 = oneapi::tbb::tick_count::now();
     std::cout << "Simple copy: " << (t1 - t0).seconds() << std::endl;
 
+    t0 = oneapi::tbb::tick_count::now();
+    optimized_copy(col_matrix, continuous_row_matrix, n_rows, n_cols);
+    t1 = oneapi::tbb::tick_count::now();
+    std::cout << "Simple copy: " << (t1 - t0).seconds() << std::endl;
+
     return 0;
 }
 
@@ -34,17 +40,23 @@ void simple_copy(float ** const src, float * const dst, const size_t n_rows, con
     }
 }
 
-void test_tbb() {
-    int default_n_threads = oneapi::tbb::info::default_concurrency();
-    int max_n_threads = oneapi::tbb::this_task_arena::max_concurrency();
-    std::cout << "Default: " << default_n_threads << std::endl;
-    std::cout << "Max: " << max_n_threads << std::endl;
-
+void optimized_copy(float ** const src, float * const dst, const size_t n_rows, const size_t n_cols) {
     oneapi::tbb::task_arena arena(4);
-    arena.execute([]{
-        oneapi::tbb::parallel_for(oneapi::tbb::blocked_range<size_t>(0, 10), [&](auto& range) {
+
+    const size_t block_size = 256;
+    const size_t n_blocks = n_rows / block_size + !!(n_rows % block_size);
+
+    arena.execute([&]{
+        oneapi::tbb::parallel_for(oneapi::tbb::blocked_range<size_t>(0, n_blocks, 1), [&](auto& range) {
             for (auto i = range.begin(); i != range.end(); ++i) {
-                std::cout << "Iter #" << i << std::endl << std::flush;
+                const size_t start_row = i * block_size;
+                const size_t end_row = (start_row + block_size > n_rows) ? n_rows : start_row + block_size;
+
+                for (size_t i = start_row; i < end_row; ++i) {
+                    for (size_t j = 0; j < n_cols; ++j) {
+                        dst[i * n_cols + j] = src[j][i];
+                    }
+                }
             }
         });
     });
