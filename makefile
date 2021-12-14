@@ -1,8 +1,8 @@
-CC        := g++
+CC        := icx
 STD       := -std=c++17
 TBB       := -I /home/owerbat/intel/oneapi/tbb/latest/include -L /home/owerbat/intel/oneapi/tbb/latest/lib/intel64/gcc4.8
-CFLAGS    := -c -Wall -O2
-LIBRARIES := $(TBB) -ltbb
+CFLAGS    := -c -Wall -O2 -m64
+LIBRARIES := $(TBB) -ltbb -lstdc++
 
 .PHONY: all clean
 
