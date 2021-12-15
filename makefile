@@ -1,6 +1,6 @@
 CC        := icx
 STD       := -std=c++17
-TBB       := -I /home/owerbat/intel/oneapi/tbb/latest/include -L /home/owerbat/intel/oneapi/tbb/latest/lib/intel64/gcc4.8
+TBB       := -I $(TBBROOT)/include -L $(TBBROOT)/lib/intel64/gcc4.8
 CFLAGS    := -c -Wall -O2 -xCore-AVX512 -qopt-zmm-usage=high
 LIBRARIES := $(TBB) -ltbb -lstdc++
 
