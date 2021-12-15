@@ -12,6 +12,7 @@ void simple_copy(float ** const src, float * const dst, const size_t n_rows, con
 void parallel_copy(float ** const src, float * const dst, const size_t n_rows, const size_t n_cols);
 void copy_block(void const * ptr_min, size_t const * offsets, void * dst, const size_t n_rows, const size_t n_cols);
 void optimized_copy(float ** const src, float * const dst, const size_t n_rows, const size_t n_cols);
+void test();
 
 int main() {
     constexpr size_t n_rows = 4 * 1024 * 1024;
@@ -22,6 +23,8 @@ int main() {
         col_matrix[i] = new float[n_rows];
 
     float * const continuous_row_matrix = new float[n_rows * n_cols];
+
+    test();
 
     constexpr size_t n_run = 10;
     oneapi::tbb::tick_count t0, t1;
@@ -131,4 +134,34 @@ void optimized_copy(float ** const src, float * const dst, const size_t n_rows, 
             }
         });
     });
+}
+
+void test() {
+    constexpr size_t n_rows = 8, n_cols = 8;
+
+    float ** const col_matrix = new float*[n_cols];
+    for (size_t i = 0; i < n_cols; ++i)
+        col_matrix[i] = new float[n_rows];
+
+    float * const matrix_parallel = new float[n_rows * n_cols];
+    float * const matrix_optimized = new float[n_rows * n_cols];
+
+    parallel_copy(col_matrix, matrix_parallel, n_rows, n_cols);
+    optimized_copy(col_matrix, matrix_optimized, n_rows, n_cols);
+
+    for (size_t i = 0; i < n_rows; ++i) {
+        for (size_t j = 0; j < n_cols; ++j) {
+            if (std::abs(matrix_parallel[i * n_cols + j] - col_matrix[j][i]) > 1e-5) {
+                std::cout << "Error in parallel\n";
+            }
+        }
+    }
+
+    for (size_t i = 0; i < n_rows; ++i) {
+        for (size_t j = 0; j < n_cols; ++j) {
+            if (std::abs(matrix_optimized[i * n_cols + j] - col_matrix[j][i]) > 1e-5) {
+                std::cout << "Error in optimized\n";
+            }
+        }
+    }
 }
