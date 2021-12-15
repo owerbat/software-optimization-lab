@@ -78,7 +78,7 @@ void simple_copy(float ** const src, float * const dst, const size_t n_rows, con
 void parallel_copy(float ** const src, float * const dst, const size_t n_rows, const size_t n_cols) {
     oneapi::tbb::task_arena arena(4);
 
-    const size_t block_size = 256;
+    const size_t block_size = 32;
     const size_t n_blocks = n_rows / block_size + !!(n_rows % block_size);
 
     arena.execute([&]{
@@ -117,7 +117,7 @@ void copy_block(void const * ptr_min, size_t const * offsets, float * dst, const
 void optimized_copy(float ** const src, float * const dst, const size_t n_rows, const size_t n_cols) {
     oneapi::tbb::task_arena arena(4);
 
-    const size_t block_size = 256;
+    const size_t block_size = 32;
     const size_t n_blocks = n_rows / block_size + !!(n_rows % block_size);
 
     float * ptr_min = src[0];
