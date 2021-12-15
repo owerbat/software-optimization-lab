@@ -58,6 +58,12 @@ int main() {
     std::cout << "Parallel speedup: " << simple_time / parallel_time << std::endl;
     std::cout << "Optimized speedup: " << simple_time / optimized_time << std::endl;
 
+    for (size_t j = 0; j < n_cols; ++j) {
+        delete[] col_matrix[j];
+    }
+    delete[] col_matrix;
+    delete[] continuous_row_matrix;
+
     return 0;
 }
 
@@ -164,4 +170,11 @@ void test() {
             }
         }
     }
+
+    for (size_t j = 0; j < n_cols; ++j) {
+        delete[] col_matrix[j];
+    }
+    delete[] col_matrix;
+    delete[] matrix_parallel;
+    delete[] matrix_optimized;
 }
